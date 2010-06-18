@@ -1,8 +1,12 @@
 require 'rserve'
+require 'statsample'
+require 'statsample/sem/model'
+require 'statsample/sem/openmxengine'
+require 'statsample/sem/semjfoxengine'
 
 module Statsample
   class SEM
-    VERSION='0.0.1'
+    VERSION='0.1.0'
     attr_reader :paths
     attr_reader :name
     attr_reader :type
@@ -77,23 +81,7 @@ factorFit<-mxRun(factorModel)
         raise "Only implemented with covariance from a dataset"
       end
     end
-    def covariance_from_dataset(ds)
-      @covariance_based=true
-      ds2=ds.clone_only_valid
-      cov=Statsample::Bivariate.covariance_matrix(ds2)
-      @cases=ds2.cases
-      r.assign 'covariance_matrix',cov
-      fields=ary_to_r(ds2.fields)
-      r.eval("dimnames(covariance_matrix)<-list(#{fields},#{fields})")
-    end
-    def covariance_from_matrix(matrix,cases,fields)
-      @covariance_based=true
-      r.assign 'covariance_matrix', matrix
-      @cases=cases
-      r_fields=ary_to_r(fields)
-      r.eval("dimnames(covariance_matrix)<-list(#{r_fields},#{r_fields})")
-      
-    end
+    
     def summary
       r.eval('summary(factorFit)').to_ruby
       
@@ -102,30 +90,6 @@ factorFit<-mxRun(factorModel)
       raise "path should have at least a :from option" unless p1.has_key? :from
       @paths << p1
     end
-    def latents(*argv)
-      if argv.size==0
-        @latents
-      elsif argv[0].is_a? Array 
-        @latents=argv[0]
-      else
-        @latents=argv
-      end
-    end
-    def latents=(argv)
-      @latents=argv
-    end
-      
-    def manifests(*argv)
-      if argv.size==0
-        @manifests
-      elsif argv[0].is_a? Array 
-        @manifests=argv[0]
-      else
-        @manifests=argv
-      end
-    end
-    def manifests=(argv)
-      @manifests=argv
-    end
+    
   end
 end
