@@ -96,7 +96,6 @@ factorFit<-mxRun(factorModel)
     end
     def summary
       r.eval('summary(factorFit)').to_ruby
-      
     end
     def path(p1=Hash.new)
       raise "path should have at least a :from option" unless p1.has_key? :from

@@ -8,4 +8,3 @@ require 'spec/autorun'
 require 'statsample'
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib') 
 require 'statsample/sem'
-require 'rinruby'
