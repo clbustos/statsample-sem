@@ -2,17 +2,37 @@ module Statsample
   class SEM
     class Model
       include Summarizable
+      # Model based on covariance
       attr_reader :covariance_based
+      # Covariance matrix
       attr_reader :covariance_matrix
+      # Number of cases
       attr_accessor :cases
-      attr_accessor :covariance_matrix_fields
+      # Name of cases
+      attr_reader :covariance_matrix_fields
       def initialize(opts=Hash.new,&block)
         raise ArgumentError,"opts should be a Hash" if !opts.is_a? Hash
         default_opts={:name=>_("SEM Model")}
-        @opts=default_opts.merge opts        
+        @opts=default_opts.merge opts
+        @paths=Hash.new
         if block
           block.arity<1 ? self.instance_eval(&block) : block.call(self)
         end
+      end
+      # Set one or more paths.
+      # If array given in from and/or to options, equal number 
+      # Rules
+      # * from : variance-> from and to equal, label equal to "s^2 NAME_OF_FIELD", arrows=2, free=>true
+      # * from and to: regression -> label equal to "FROM->TO", arrows=1, free=>true
+      # * from, to, arrows -> regression or correlation -> label equal to "FROM->TO" if arrow=1,
+      #   "FROM<->TO" if arrow=2, free=>true
+      # * free=false -> requires values for each from - to value
+      def path(opts)
+        
+      end
+      def covariance_matrix_fields=(v)
+        raise ArgumentError, "Should be size=#{@covariance_matrix.row_size}" if v.size!=@covariance_matrix.row_size
+        @covariance_matrix_fields=v.map {|i| i.to_s}
       end
       def latents(*argv)
         if argv.size==0
