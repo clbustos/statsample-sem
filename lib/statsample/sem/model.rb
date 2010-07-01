@@ -32,7 +32,7 @@ module Statsample
       
       def add_path(f1,f2,arrows,free,values,labels,i)
         
-        arrow_s = (arrows==1) ? "-->":"<->"
+        arrow_s = (arrows==1) ? "to":"cov"
         raise "Path repeated : #{f1},#{f2}" if @paths.has_key? [[f1,f2].sort]
         label= (labels.nil? or !labels.respond_to?:[] or labels[i].nil?) ? "#{f1} #{arrow_s} #{f2}" : labels[i]
         
@@ -95,7 +95,7 @@ module Statsample
           labels_2=Array.new(from.size)
           
           from.each_with_index do |f,i|
-            labels_2[i]=(labels.nil? or !labels.respond_to?:[] or labels[i].nil?) ? "s^2 #{f}" : labels[i]
+            labels_2[i]=(labels.nil? or !labels.respond_to?:[] or labels[i].nil?) ? "var #{f}" : labels[i]
           end
           
           from.each_with_index do |f,i|
