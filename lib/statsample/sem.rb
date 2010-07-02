@@ -1,5 +1,6 @@
 require 'rserve'
 require 'statsample'
+require 'statsample/rserve_extension'
 require 'statsample/sem/model'
 require 'statsample/sem/openmxengine'
 require 'statsample/sem/semjfoxengine'

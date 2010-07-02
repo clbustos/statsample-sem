@@ -1,7 +1,7 @@
 $:.unshift(File.dirname(__FILE__)+"/.")
 require 'spec_helper'
 
-describe Statsample::SEM::OpenMxEngine do
+describe Statsample::SEM::SemJFoxEngine do
   before(:all) do
     begin 
       @data_path=File.dirname(__FILE__)+"/fixtures/demo_open_mx.ds"
@@ -23,7 +23,7 @@ describe Statsample::SEM::OpenMxEngine do
         m.path :from=>m.latents, :free=>false, :values=>1.0
         m.data_from_matrix(@cov_matrix,:cases=>@cases)
       end
-      @engine=Statsample::SEM::OpenMxEngine.new(@model)
+      @engine=Statsample::SEM::SemJFoxEngine.new(@model)
     end
     it "should generate a valid r query" do
       @engine.r_query.size.should>=0
@@ -31,34 +31,6 @@ describe Statsample::SEM::OpenMxEngine do
     it "should compute and return well formed response" do
       lambda{@engine.compute}.should_not raise_error
       @engine.summary.should be_instance_of (Array)
-    end
-    it "should return a valid graphviz definition for model" do
-      @engine.graphviz.size.should>=0
-    end
-  end
-  
-  describe "using raw data" do 
-    before(:each) do
-      @model=Statsample::SEM::Model.new do |m|
-        m.manifests @ds.fields
-        m.latents %w{G}
-        m.path :from=>m.latents, :to=>m.manifests
-        m.path :from=>m.manifests
-        m.path :from=>m.latents, :free=>false, :values=>1.0
-        m.path :from=>"one", :to=>m.manifests
-        m.data_from_dataset(@ds)
-      end
-      @engine=Statsample::SEM::OpenMxEngine.new(@model)
-    end
-    it "should generate a valid r query" do
-      @engine.r_query.size.should>=0
-    end
-    it "should compute and return well formed response" do
-      lambda{@engine.compute}.should_not raise_error
-      @engine.summary.should be_instance_of (Array)
-    end
-    it "should return a valid graphviz definition for model" do
-      @engine.graphviz.size.should>=0
     end
   end
   
