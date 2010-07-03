@@ -10,13 +10,12 @@ require 'statsample/sem/semjfoxengine'
 module Statsample
   class SEM
     extend Forwardable
-
     VERSION='0.1.0'
     attr_accessor :name
     attr_accessor :engine
     def_delegators :@model, :path, :data_from_matrix, :data_from_dataset, :manifests, :manifests=, :latents, :latents=, :variables=, :make_null
       def_delegators :@engine_obj, :chi_square, :df
-    def initialize(opts=Hash.new,&block)
+    def initialize(opts=Hash.new, &block)
       default_opts={:name=>"SEM Analysis", :engine=>:sem}
       @opts=default_opts.merge(opts)
       @engine_obj=nil
