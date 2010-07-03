@@ -31,7 +31,13 @@ describe Statsample::SEM::Model do
     @model.latents ["G"]
     @model.latents.should==["G"]
   end
-  
+  it "should automaticly set manifest and latents with data and path" do
+      @model.data_from_matrix(Statsample::Bivariate.covariance_matrix(@ds), :cases=>@ds.dup_only_valid.cases)
+      @model.path :from=>"G1", :to=>['x1','x2']
+      @model.path :from=>"G2", :to=>['x3','x4']
+      @model.latents.should==['G1','G2']
+      @model.manifests.should==['x1','x2','x3','x4']
+  end
   
   
   
@@ -130,14 +136,21 @@ describe Statsample::SEM::Model do
     @model.data_type.should==:covariance
     @model.cases.should==@ds.cases
     @model.variables.should==@ds.fields
-    
-    
   end
   it "should accept a correlation matrix" do
     @model.data_from_matrix(Statsample::Bivariate.correlation_matrix(@ds), :cases=>@ds.dup_only_valid.cases)
     @model.data_type.should==:correlation
     @model.cases.should==@ds.cases
     @model.variables.should==@ds.fields
+  end
+  it "should duplicate correctly using 'dup'" do
+    @model.data_from_dataset(@ds)
+    @model.path :from=>"G", :to=>['x1','x2']
+    model2=@model.dup
+    model2.paths.should==@model.paths
+    model2.manifests.should==@model.manifests
+    model2.latents.should==@model.latents
+    model2.cases.should==@model.cases
     
     
   end

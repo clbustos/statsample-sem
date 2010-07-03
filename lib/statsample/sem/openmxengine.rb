@@ -3,10 +3,11 @@ require 'tempfile'
 module Statsample
   class SEM
     class OpenMxEngine
+      include DirtyMemoize
       include Summarizable
       attr_accessor :summarizable
       attr_accessor :name
-      attr_reader :summary
+      attr_reader :r_summary
       def initialize(model,opts=Hash.new)
         @model=model
         defaults = {
@@ -69,16 +70,75 @@ rm(data,manifests,latents,d_means);
         r.assign 'latents', @model.latents
         r.assign 'd_means',@model.means unless @model.means.nil?
         r.void_eval r_query
-        @summary=@r.eval('summary(factorFit)').to_ruby
+        @r_summary=@r.eval('summary(factorFit)').to_ruby
+        true
       end
       def graphviz
-        compute if @summary.nil?
+        compute if @r_summary.nil?
         tf=Tempfile.new('model.dot')
         r.void_eval("omxGraphviz(factorModel,'#{tf.path}')")
 #        tf.close
 #        tf.open
         tf.read
       end
+      def chi_square
+        @r_summary['Chi']
+      end
+      def df
+        @r_summary['degreesOfFreedom']
+      end
+      def chi_square_null
+        null_model.r_summary['Chi']
+      end
+      def df_null
+        null_model.r_summary['degreesOfFreedom']
+      end
+
+      def null_model
+        @null_model||=compute_null_model
+      end
+      def compute_null_model #:nodoc:
+        nm=@model.dup
+        nm.make_null
+        (self.class).new(nm,@opts)
+      end
+      def rmsea
+        @r_summary['RMSEA']
+      end
+       # [χ2(Null Model) - χ2(Proposed Model)]/ [χ2(Null Model)]
+      def nfi
+        (chi_square_null-chi_square).quo(chi_square_null)
+      end
+      
+      # [χ2/df(Null Model) - χ2/df(Proposed Model)]/[χ2/df(Null Model) - 1]
+      def nnfi
+        (chi_square_null.quo(df_null) - chi_square.quo(df)).quo(chi_square_null.quo(df_null)-1)
+      end
+      def cfi
+        d_null=chi_square_null-df_null
+        ((d_null)-(chi_square-df)).quo(d_null)
+      end
+      def bic
+        k=@model.k
+        p k
+        ln_n=Math.log(@model.cases)
+        chi_square+((k*(k-1).quo(2)) - df)*ln_n
+      end
+      def coefficients
+        est=Hash.new
+        coeffs=@r_summary['parameters']
+        # 0:name, 1:matrix, 2:row, 3:col, 4:estimate, 5:Std.error
+        coeffs[0].each_with_index do |v,i|
+          f1=coeffs[2][i]
+          f2=coeffs[3][i]
+          key=[f1,f2].sort
+          est[key]={:estimate=>coeffs[4][i], :se=>coeffs[5][i], :z=>nil, :p=>nil, :label=>v}
+        end
+        est
+        
+      end
+      dirty_memoize :chi_square, :df, :rmsea, :coefficients, :r_summary, :chi_square_null, :df_null, :nfi, :nnfi
+      
     end
   end
 end

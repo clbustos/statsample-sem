@@ -9,7 +9,7 @@ Structural equation modeling (SEM), usign ruby and R
 == FEATURES/PROBLEMS:
 
 * Abstract generation of models. You could use R packages sem or OpenMx only changing the configuration for engine
-* Generates visual representations of models using GraphViz (to implement)
+* Generates visual representations of output models using GraphViz (to implement)
 
 == SYNOPSIS:
 
@@ -19,17 +19,16 @@ Structural equation modeling (SEM), usign ruby and R
   cov_matrix.fields=['x1','x2','x3']
   # Create a model
   model=Statsample::SEM::Model.new(:name=>"New Model") do |m|
-    manifests %w{x1 x2 x3}
-    latents %w{G}
-    path :from=>latents, :to=>manifests, :labels=>manifest.map {|m| "to #{m}"}
-    path :from=>manifests, :arrows=>2, :labels=>manifest.map {|m| "s^2 #{m}"}
-    path :from=>latents, :arrows=>2, :free=>false,values=>1.0
-    covariance_from cov_matrix
+    path :from=>'G', :to=>%w{x1 x2 x3} # Regression paths
+    path :from=>%w{x1 x2 x3} # Free variances
+    path :from=>'G', :arrows=>2, :free=>false, :values=>1.0 # Fixed variance of 
+    data_from_matrix(cov_matrix,:type=>:covariance, :cases=>200)
   end
   # Feed the engine
+  
   engine=Statsample::SEM::OpenMxEngine.new(model)
   engine.compute
-  puts engine.summary
+  p engine.r_summary # ruby version of R summary
 
 == REQUIREMENTS:
 

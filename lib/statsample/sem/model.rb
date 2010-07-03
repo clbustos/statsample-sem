@@ -2,7 +2,7 @@ module Statsample
   class SEM
     class Model
       include Summarizable
-      # Type of data used. Could be +:covariance+, +:correlation+ or +:data+
+      # Type of data used. Could be +:covariance+, +:correlation+ or +:raw+
       attr_reader :data_type
       # Covariance/correlation matrix
       attr_reader :matrix
@@ -16,22 +16,56 @@ module Statsample
       attr_reader :variables
       
       attr_reader :paths
-      def initialize(opts=Hash.new,&block)
+      def initialize(opts=Hash.new, &block)
         raise ArgumentError,"opts should be a Hash" if !opts.is_a? Hash
         default_opts={:name=>_("SEM Model")}
         @opts=default_opts.merge opts
         @paths=Hash.new
+        @manifests=nil
+        @latents=nil
         if block
           block.arity<1 ? self.instance_eval(&block) : block.call(self)
+        end
+      end
+      def dup
+        mod=Model.new(@opts)
+        if @data_type==:raw
+          mod.data_from_dataset(@ds)
+        else
+          mod.data_from_matrix(@matrix,:type=>@data_type,:cases=>@cases, :means=>@means) 
+        end
+        mod.latents=latents
+        mod.manifests=manifests
+        if @paths
+          @paths.each_pair do |k,v|
+            mod.add_raw_path(k[0],k[1],v[:arrow],v[:label],v[:free], v[:value])
+          end
+        end
+        mod
+      end
+      def make_null
+        # Get current variables
+        vars=variables_on_paths
+        @paths.clear
+        vars.each do |v|
+          if @variables.include? v
+            free=true
+            value=nil
+          else
+            free=false
+            value=1.0
+          end
+          add_raw_path(v,v,2,"var #{v}",free,value)
         end
       end
       # True if model have enough information to process it
       def complete?
         !@data_type.nil? and !@manifests.nil? and !@latents.nil? and @paths.size>0
       end
-      
+      def add_raw_path(f1,f2,arrows,label,free,value)
+        @paths[[f1,f2].sort]={ :from=>f1, :to=>f2, :arrow=>arrows, :label=>label, :free=>free, :value=>value}
+      end
       def add_path(f1,f2,arrows,free,values,labels,i)
-        
         arrow_s = (arrows==1) ? "to":"cov"
         raise "Path repeated : #{f1},#{f2}" if @paths.has_key? [[f1,f2].sort]
         label= (labels.nil? or !labels.respond_to?:[] or labels[i].nil?) ? "#{f1} #{arrow_s} #{f2}" : labels[i]
@@ -46,9 +80,6 @@ module Statsample
         value = nil if free_v
         
         @paths[[f1,f2].sort]={ :from=>f1, :to=>f2, :arrow=>arrows, :label=>label, :free=>free_v, :value=>value}
-         i+=1 
-        
-        
       end
       # Set one or more paths. Based on OpenMx mxPath method.
       # 
@@ -128,8 +159,36 @@ module Statsample
         raise ArgumentError, "Should be size=#{@variables.row_size}" if @data_type!=:raw and v.size!=@matrix.row_size
         @variables=v.map {|i| i.to_s}
       end
+      # Total number of variables
+      def variables_on_paths
+        out=Array.new
+        @paths.keys.each {|k|
+          out << k[0] unless out.include? k[0]
+          out << k[1] unless out.include? k[1]
+        }
+        out
+      end
+      # Number of variables on model
+      def k
+        variables_on_paths.size
+      end
+      # Latents will be any variable set on a path not present
+      # on @variables
+      def infer_latents
+        variables_on_paths-@variables
+      end
+      # Latens will be any variable set on path present on @variables
+      def infer_manifests
+        variables_on_paths & @variables
+      end
+      def get_label(key)
+        @paths[key][:label]
+      end
       def latents(*argv)
         if argv.size==0
+          if @latents.nil? and @paths.size>0 and !@data_type.nil? 
+            @latents=infer_latents
+          end
           @latents
         elsif argv[0].is_a? Array 
           @latents=argv[0]
@@ -143,6 +202,9 @@ module Statsample
       
       def manifests(*argv)
         if argv.size==0
+          if @manifests.nil? and @paths.size>0 and !@data_type.nil? 
+            @manifests=infer_manifests
+          end
           @manifests
         elsif argv[0].is_a? Array 
           @manifests=argv[0]
