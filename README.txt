@@ -1,6 +1,6 @@
 = statsample-sem
 
-* http://github.com/clbustos/statsample-sem 
+* http://ruby-statsample.rubyforge.org/
 
 == DESCRIPTION:
 
