@@ -30,7 +30,6 @@ describe Statsample::SEM::OpenMxEngine do
     end
     it "should compute and return well formed response" do
       lambda{@engine.compute}.should_not raise_error
-      pp @engine.r_summary
       @engine.r_summary.should be_instance_of (Array)
     end
     it "should return a valid graphviz definition for model" do
@@ -104,7 +103,7 @@ describe Statsample::SEM::OpenMxEngine do
       coeffs[['G','x1']][:se].should be_close(0.0155826, 0.0001)
       coeffs[['G','x1']][:label].should=='G to x1'
      # pending('Not Implemented z')
-     # coeffs[['G','x1']][:z].should be_close(25.4869, 0.0001)
+     coeffs[['G','x1']][:z].should be_close(coeffs[['G','x1']][:estimate].quo(coeffs[['G','x1']][:se]), 0.0001)
     end
     
     

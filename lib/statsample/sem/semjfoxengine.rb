@@ -191,7 +191,6 @@ sem.summary<-summary(sem.object)
         est
       end
       dirty_memoize :chi_square, :df, :chi_square_null, :df_null, :goodness_of_fit, :adjusted_goodness_of_fit, :rmsea, :nfi, :nnfi, :cfi, :srmr, :bic, :normalized_residual, :coefficients, :iterations
-
     end
   end
 end

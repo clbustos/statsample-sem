@@ -132,7 +132,7 @@ rm(data,manifests,latents,d_means);
           f1=coeffs[2][i]
           f2=coeffs[3][i]
           key=[f1,f2].sort
-          est[key]={:estimate=>coeffs[4][i], :se=>coeffs[5][i], :z=>nil, :p=>nil, :label=>v}
+          est[key]={:estimate=>coeffs[4][i], :se=>coeffs[5][i], :z=>coeffs[4][i].quo(coeffs[5][i]), :p=>nil, :label=>v}
         end
         est
         
