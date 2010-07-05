@@ -129,19 +129,19 @@ describe Statsample::SEM::Model do
     @model.data_from_dataset(@ds)
     @model.data_type.should==:raw
     @model.ds.should==@ds
-    @model.variables.should==@ds.fields
+    @model.data_variables.should==@ds.fields
   end
   it "should accept a covariance matrix" do
     @model.data_from_matrix(Statsample::Bivariate.covariance_matrix(@ds), :cases=>@ds.dup_only_valid.cases)
     @model.data_type.should==:covariance
     @model.cases.should==@ds.cases
-    @model.variables.should==@ds.fields
+    @model.data_variables.should==@ds.fields
   end
   it "should accept a correlation matrix" do
     @model.data_from_matrix(Statsample::Bivariate.correlation_matrix(@ds), :cases=>@ds.dup_only_valid.cases)
     @model.data_type.should==:correlation
     @model.cases.should==@ds.cases
-    @model.variables.should==@ds.fields
+    @model.data_variables.should==@ds.fields
   end
   it "should duplicate correctly using 'dup'" do
     @model.data_from_dataset(@ds)

@@ -12,8 +12,8 @@ module Statsample
       attr_accessor :cases
       # Optional array of mean for use when data is matrix based
       attr_accessor :means
-      # Name of variables
-      attr_reader :variables
+      # Name of data variables
+      attr_reader :data_variables
       
       attr_reader :paths
       def initialize(opts=Hash.new, &block)
@@ -48,7 +48,7 @@ module Statsample
         vars=variables_on_paths
         @paths.clear
         vars.each do |v|
-          if @variables.include? v
+          if @data_variables.include? v
             free=true
             value=nil
           else
@@ -155,9 +155,8 @@ module Statsample
         
         
       end
-      def variables=(v)
-        raise ArgumentError, "Should be size=#{@variables.row_size}" if @data_type!=:raw and v.size!=@matrix.row_size
-        @variables=v.map {|i| i.to_s}
+      def data_variables=(v)
+        @data_variables=v.map {|i| i.to_s}
       end
       # Total number of variables
       def variables_on_paths
@@ -175,11 +174,11 @@ module Statsample
       # Latents will be any variable set on a path not present
       # on @variables
       def infer_latents
-        variables_on_paths-@variables
+        variables_on_paths-@data_variables
       end
       # Latens will be any variable set on path present on @variables
       def infer_manifests
-        variables_on_paths & @variables
+        variables_on_paths & @data_variables
       end
       def get_label(key)
         @paths[key][:label]
@@ -218,13 +217,13 @@ module Statsample
       def data_from_dataset(ds)
         @data_type=:raw
         @ds=ds
-        @variables=@ds.fields
+        @data_variables=@ds.fields
       end
       
       def data_from_matrix(matrix,opts=Hash.new)
         type = opts[:type]
         type||=(matrix.respond_to? :type) ? matrix.type : :covariance
-        variable_names = opts[:variable_names]
+        data_variables = opts[:data_variables]
         cases = opts[:cases]
         means = opts[:means]
         raise "You should set number of cases" if cases.nil?
@@ -233,10 +232,15 @@ module Statsample
         @matrix=matrix
         @cases=cases
         @means=means
-        if variable_names.nil? 
-          @variables=@matrix.fields if @matrix.respond_to? :fields
+        if data_variables.nil?
+          if @matrix.respond_to? :fields
+            @data_variables=@matrix.fields 
+          elsif @data_variables.nil?
+            @data_variables=@matrix.row_size.times.map {|i| "VAR#{i+1}"}
+            
+          end
         else
-          @variables=variable_names
+          @data_variables=variable_names
         end
       end
     end

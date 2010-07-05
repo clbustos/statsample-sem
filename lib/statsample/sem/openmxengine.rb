@@ -62,7 +62,7 @@ rm(data,manifests,latents,d_means);
         raise "Insuficient information" unless @model.complete?
         r.assign 'data', @model.data_type==:raw ? @model.ds : @model.matrix
         if @model.matrix
-          r.assign 'vn', @model.variables
+          r.assign 'vn', @model.data_variables
           # We should assing names to fields on matrix
           r.void_eval('dimnames(data)<-list(vn,vn)')
         end
