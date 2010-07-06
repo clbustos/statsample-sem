@@ -7,13 +7,12 @@ module Statsample
       include Summarizable
       attr_accessor :summarizable
       attr_accessor :name
-      attr_reader :r_summary
       def initialize(model,opts=Hash.new)
         @model=model
         defaults = {
           :name=>_("SEM analysis using OpenMx")
         }
-        @opts=defaults.merge defaults
+        @opts=defaults.merge opts
         @name=@opts[:name]
       end
       def r
@@ -71,7 +70,7 @@ rm(data,manifests,latents,d_means);
         r.assign 'd_means',@model.means unless @model.means.nil?
         r.void_eval r_query
         @r_summary=@r.eval('summary(factorFit)').to_ruby
-        true
+        
       end
       def graphviz
         compute if @r_summary.nil?
@@ -81,11 +80,14 @@ rm(data,manifests,latents,d_means);
 #        tf.open
         tf.read
       end
+      def r_summary
+        @r_summary||=compute
+      end
       def chi_square
-        @r_summary['Chi']
+        r_summary['Chi']
       end
       def df
-        @r_summary['degreesOfFreedom']
+        r_summary['degreesOfFreedom']
       end
       def chi_square_null
         null_model.r_summary['Chi']
@@ -103,7 +105,7 @@ rm(data,manifests,latents,d_means);
         (self.class).new(nm,@opts)
       end
       def rmsea
-        @r_summary['RMSEA']
+        r_summary['RMSEA']
       end
        # [χ2(Null Model) - χ2(Proposed Model)]/ [χ2(Null Model)]
       def nfi
@@ -126,7 +128,7 @@ rm(data,manifests,latents,d_means);
       end
       def coefficients
         est=Hash.new
-        coeffs=@r_summary['parameters']
+        coeffs=r_summary['parameters']
         # 0:name, 1:matrix, 2:row, 3:col, 4:estimate, 5:Std.error
         coeffs[0].each_with_index do |v,i|
           f1=coeffs[2][i]
@@ -137,7 +139,6 @@ rm(data,manifests,latents,d_means);
         est
         
       end
-      dirty_memoize :chi_square, :df, :rmsea, :coefficients, :r_summary, :chi_square_null, :df_null, :nfi, :nnfi
       
     end
   end

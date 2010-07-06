@@ -2,6 +2,7 @@ module Statsample
   class SEM
     class Model
       include Summarizable
+      attr_accessor :name
       # Type of data used. Could be +:covariance+, +:correlation+ or +:raw+
       attr_reader :data_type
       # Covariance/correlation matrix

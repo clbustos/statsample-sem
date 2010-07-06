@@ -15,24 +15,30 @@ module Statsample
     attr_accessor :engine
     attr_reader :model
     def_delegators :@model, :path, :data_from_matrix, :data_from_dataset, :manifests, :manifests=, :latents, :latents=, :data_variables, :data_variables=, :make_null
-      def_delegators :@engine_obj, :summary, :chi_square, :df
+    def_delegators :@engine_obj, :summary, :chi_square, :df
     def initialize(opts=Hash.new, &block)
       default_opts={:name=>"SEM Analysis", :engine=>:sem}
       @opts=default_opts.merge(opts)
       @engine_obj=nil
-      @name=@opts.delete :name
-      @engine=@opts.delete :engine
+      @engine = @opts.delete :engine
       @model=Statsample::SEM::Model.new(:name=>@name)
       if block
         block.arity<1 ? instance_eval(&block) : block.call(self)
       end
     end
+    
+    def name=(v)
+        @opts[:name]=v
+    end
+    def name
+      @opts[:name]
+    end
     def compute
       @engine_obj=case @engine
       when :openmx
-        OpenMxEngine.new(@model)
+        OpenMxEngine.new(@model, @opts)
       when :sem
-        SemJFoxEngine.new(@model)
+        SemJFoxEngine.new(@model, @opts)
       end
       @engine_obj.compute
       @engine_obj

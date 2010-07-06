@@ -12,7 +12,7 @@ matrix=Matrix[[0.1985443,0.1999953,0.2311884,0.2783865,0.3155943],
 
 
 cases=500
-sem1=Statsample::SEM.new do |m|
+sem1=Statsample::SEM.new(:name=>"SEM analysis") do |m|
     m.data_from_matrix(matrix,:cases=>cases)
     m.manifests m.data_variables
     m.latents %w{G}
@@ -22,11 +22,13 @@ sem1=Statsample::SEM.new do |m|
     
 end
 sem1.compute
-
 puts sem1.summary
 
 sem2=sem1.dup
 sem2.make_null
+
+sem2.name="Null Model"
+
 sem2.compute
 
 puts sem2.summary
