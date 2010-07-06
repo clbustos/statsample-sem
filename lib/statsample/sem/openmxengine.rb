@@ -119,8 +119,8 @@ rm(data,manifests,latents,d_means);
         ((d_null)-(chi_square-df)).quo(d_null)
       end
       def bic
+        raise "Not well implemented"
         k=@model.k
-        p k
         ln_n=Math.log(@model.cases)
         chi_square+((k*(k-1).quo(2)) - df)*ln_n
       end

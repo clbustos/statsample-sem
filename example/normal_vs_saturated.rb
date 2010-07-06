@@ -14,8 +14,7 @@ matrix=Matrix[[0.1985443,0.1999953,0.2311884,0.2783865,0.3155943],
 cases=500
 sem1=Statsample::SEM.new do |m|
     m.data_from_matrix(matrix,:cases=>cases)
-    m.variables=%w{x1 x2 x3 x4 x5}
-    m.manifests %w{x1 x2 x3 x4 x5}
+    m.manifests m.data_variables
     m.latents %w{G}
     m.path :from=>m.latents, :to=>m.manifests
     m.path :from=>m.manifests
@@ -23,14 +22,12 @@ sem1=Statsample::SEM.new do |m|
     
 end
 sem1.compute
-puts sem1.chi_square
+
+puts sem1.summary
 
 sem2=sem1.dup
 sem2.make_null
 sem2.compute
 
-
-
-puts sem2.chi_square
-puts sem2.df
+puts sem2.summary
 

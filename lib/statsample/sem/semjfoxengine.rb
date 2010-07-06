@@ -190,6 +190,21 @@ sem.summary<-summary(sem.object)
         end
         est
       end
+      def report_building(g)
+        g.section(:name=>@name) do |s|
+          s.text _("Manifests: %s") % @model.manifests.join(", ")
+          s.text _("Latents  : %s") % @model.latents.join(", ")
+          s.text "Chi-square: %0.3f (d.f=%d)" % [chi_square, df]
+          g.table(:name=>_("Parameter estimation"),:header=>[_("From"), _("To"), _("Label"),  _("estimate"),_("se")]) do |t|
+            coefficients.sort.each do |v|
+              f1,f2 = v[0][0],v[0][1]
+              key=v[0]
+              val=v[1]
+              t.row [f1,f2, val[:label], "%0.8f" % val[:estimate], "%0.8f" %  val[:se]] 
+            end
+          end
+        end
+      end
       dirty_memoize :chi_square, :df, :chi_square_null, :df_null, :goodness_of_fit, :adjusted_goodness_of_fit, :rmsea, :nfi, :nnfi, :cfi, :srmr, :bic, :normalized_residual, :coefficients, :iterations
     end
   end
