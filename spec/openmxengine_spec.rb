@@ -108,7 +108,7 @@ describe Statsample::SEM::OpenMxEngine do
     
     
   end
-  if(false)
+  if(true)
   describe "using raw data" do 
     before(:each) do
       @model=Statsample::SEM::Model.new do |m|

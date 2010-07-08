@@ -10,9 +10,9 @@ lib/statsample/sem/openmxengine.rb
 lib/statsample/sem/semjfoxengine.rb
 spec/fixtures/demo_open_mx.csv
 spec/fixtures/demo_open_mx.ds
+spec/model_spec.rb
+spec/openmxengine_spec.rb
+spec/sem_spec.rb
+spec/semjfoxengine_spec.rb
 spec/spec.opts
 spec/spec_helper.rb
-spec/statsample_sem_model_spec.rb
-spec/statsample_sem_openmxengine_spec.rb
-spec/statsample_sem_semjfoxengine_spec.rb
-spec/statsample_sem_spec.rb

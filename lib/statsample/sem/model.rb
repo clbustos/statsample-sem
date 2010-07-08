@@ -59,6 +59,10 @@ module Statsample
           add_raw_path(v,v,2,"var #{v}",free,value)
         end
       end
+      def delete_path(f1,f2)
+        
+        @paths.delete([f1,f2].sort)
+      end
       # True if model have enough information to process it
       def complete?
         !@data_type.nil? and !@manifests.nil? and !@latents.nil? and @paths.size>0

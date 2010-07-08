@@ -3,7 +3,6 @@ require 'tempfile'
 module Statsample
   class SEM
     class OpenMxEngine
-      include DirtyMemoize
       include Summarizable
       attr_accessor :summarizable
       attr_accessor :name
@@ -127,6 +126,9 @@ rm(data,manifests,latents,d_means);
         chi_square+((k*(k-1).quo(2)) - df)*ln_n
       end
       def coefficients
+        @coefficients||=compute_coefficients
+      end
+      def compute_coefficients #:nodoc:
         est=Hash.new
         coeffs=r_summary['parameters']
         # 0:name, 1:matrix, 2:row, 3:col, 4:estimate, 5:Std.error
@@ -139,7 +141,6 @@ rm(data,manifests,latents,d_means);
         est
         
       end
-      
     end
   end
 end

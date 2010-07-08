@@ -6,7 +6,6 @@ module Statsample
     # Documentation for methods extracted from [http://davidakenny.net/cm/fit.htm]
     #
     class SemJFoxEngine
-      include DirtyMemoize
       include Summarizable
       attr_accessor :summarizable
       attr_accessor :name
@@ -40,7 +39,7 @@ module Statsample
             raise "not implemented"
         end
       end
-def r_query
+      def r_query
         <<-EOF
 library(sem);
 sem.model<-matrix(c(
@@ -183,7 +182,11 @@ sem.summary<-summary(sem.object)
         r_summary['iterations']
       end
       def coefficients
-        est=Hash.new
+	@coefficients||=compute_coefficients
+      end
+      def compute_coefficients
+        
+	est=Hash.new
         coeffs= r_summary['coeff']
         coeffs[4].each_with_index do |v,i|
           v=~/(.+) (<---|<-->) (.+)/
@@ -198,8 +201,8 @@ sem.summary<-summary(sem.object)
         g.section(:name=>@name) do |s|
           s.text _("Manifests: %s") % @model.manifests.join(", ")
           s.text _("Latents  : %s") % @model.latents.join(", ")
-          s.text "Chi-square: %0.3f (d.f=%d)" % [chi_square, df]
-          g.table(:name=>_("Parameter estimation"),:header=>[_("From"), _("To"), _("Label"),  _("estimate"),_("se")]) do |t|
+          s.text "Chi-square: %0.3f (d.f=%d), p = %0.3f " % [chi_square, df, 1.0-Distribution::ChiSquare.cdf(chi_square, df)]
+          g.table(:name=>_("Parameter estimation"),:header=>[_("From"), _("To"), _("Label"),  _("estimate"),_("se"), _("z")]) do |t|
             @model.paths.sort.each do |v|
               
               f1,f2 = v[0][0],v[0][1]
@@ -207,14 +210,16 @@ sem.summary<-summary(sem.object)
               if v[1][:free]
                 val=coefficients[key]
                 label=v[1][:label]
-                estimate="%0.8f" % val[:estimate]
-                se="%0.8f" % val[:se]
+                estimate="%0.5f" % val[:estimate]
+		se=val[:se].nil? ? "?" : ("%0.5f" % val[:se])
+                z="%0.3f%s(%0.2f)" % [val[:z], val[:z].abs>=1.96 ? "*":"", val[:p]] 
               else
                 label=_("%s (Fixed)") % v[1][:label]
                 estimate=v[1][:value]
                 se="--"
+                z="--"
               end
-              t.row [f1,f2, label, estimate, se] 
+              t.row [f1,f2, label, estimate, se, z] 
             end
           end
         end

@@ -14,6 +14,7 @@ module Statsample
     attr_accessor :name
     attr_accessor :engine
     attr_reader :model
+    attr_reader :engine_obj
     def_delegators :@model, :path, :data_from_matrix, :data_from_dataset, :manifests, :manifests=, :latents, :latents=, :data_variables, :data_variables=, :make_null
     def_delegators :@engine_obj, :summary, :chi_square, :df
     def initialize(opts=Hash.new, &block)
