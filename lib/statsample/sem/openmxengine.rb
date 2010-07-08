@@ -2,7 +2,7 @@ require 'rserve'
 require 'tempfile'
 module Statsample
   class SEM
-    class OpenMxEngine
+    class OpenMxEngine < Engine
       include Summarizable
       attr_accessor :summarizable
       attr_accessor :name
@@ -141,6 +141,12 @@ rm(data,manifests,latents,d_means);
         est
         
       end
+      def report_building(g)
+        g.section(:name=>@name) do |s|
+          common_summary(s)
+        end
+      end
+
     end
   end
 end

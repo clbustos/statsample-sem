@@ -28,6 +28,10 @@ describe Statsample::SEM::SemJFoxEngine do
     it "should generate a valid r query" do
       @engine.r_query.size.should>=0
     end
+    it "should return a valid summary" do
+      @engine.summary.size>0
+    end
+
     it "should compute and return well formed response" do
       lambda{@engine.compute}.should_not raise_error
       @engine.r_summary.should be_instance_of (Array)

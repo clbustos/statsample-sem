@@ -1,9 +1,9 @@
 require 'rserve'
-require 'dirty-memoize'
 require 'forwardable'
 require 'statsample'
 require 'statsample/rserve_extension'
 require 'statsample/sem/model'
+require 'statsample/sem/engine'
 require 'statsample/sem/openmxengine'
 require 'statsample/sem/semjfoxengine'
 

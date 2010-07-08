@@ -24,9 +24,13 @@ describe Statsample::SEM::OpenMxEngine do
         m.data_from_matrix(@cov_matrix,:cases=>@cases)
       end
       @engine=Statsample::SEM::OpenMxEngine.new(@model)
+      @engine.compute
     end
     it "should generate a valid r query" do
       @engine.r_query.size.should>=0
+    end
+    it "should return a valid summary" do
+      @engine.summary.size>0
     end
     it "should compute and return well formed response" do
       lambda{@engine.compute}.should_not raise_error
@@ -108,7 +112,7 @@ describe Statsample::SEM::OpenMxEngine do
     
     
   end
-  if(true)
+  if(false)
   describe "using raw data" do 
     before(:each) do
       @model=Statsample::SEM::Model.new do |m|
