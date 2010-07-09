@@ -5,6 +5,7 @@ Rakefile
 bin/statsample_sem
 example/normal_vs_saturated.rb
 lib/statsample/sem.rb
+lib/statsample/sem/engine.rb
 lib/statsample/sem/model.rb
 lib/statsample/sem/openmxengine.rb
 lib/statsample/sem/semjfoxengine.rb

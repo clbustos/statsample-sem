@@ -28,6 +28,12 @@ describe Statsample::SEM::SemJFoxEngine do
     it "should generate a valid r query" do
       @engine.r_query.size.should>=0
     end
+    it "should have valid std coeffs" do
+      sc=@engine.standarized_coefficients
+      sc.should be_instance_of Hash
+      sc[['G','x1']][:estimate].should be_close(0.891309,0.0001)
+    
+    end
     it "should return a valid summary" do
       @engine.summary.size>0
     end

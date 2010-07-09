@@ -6,10 +6,12 @@ module Statsample
       include Summarizable
       attr_accessor :summarizable
       attr_accessor :name
+      attr_reader :model
       def initialize(model,opts=Hash.new)
         @model=model
         defaults = {
-          :name=>_("SEM analysis using OpenMx")
+          :name=>_("SEM analysis using OpenMx"),
+          :summary_standarized_coefficients=>false
         }
         @opts=defaults.merge opts
         @name=@opts[:name]
@@ -128,6 +130,29 @@ rm(data,manifests,latents,d_means);
       def coefficients
         @coefficients||=compute_coefficients
       end
+      
+      
+      def standarized_coefficients
+        if @std_coef.nil?
+          @std_coef=model_with_correlation.coefficients
+        end
+      @std_coef
+      end
+      
+      def model_with_correlation
+        if @model_with_correlation.nil?
+          if model.matrix.type==:covariance
+            model2=model.dup
+            model2.data_from_matrix( model.matrix.correlation, :cases=>model.cases )
+            @model_with_correlation=(self.class).new(model2)
+          else
+            @model_with_correlation=self
+          end
+        end
+        @model_with_correlation
+      end
+      
+      
       def compute_coefficients #:nodoc:
         est=Hash.new
         coeffs=r_summary['parameters']
@@ -136,7 +161,8 @@ rm(data,manifests,latents,d_means);
           f1=coeffs[2][i]
           f2=coeffs[3][i]
           key=[f1,f2].sort
-          est[key]={:estimate=>coeffs[4][i], :se=>coeffs[5][i], :z=>coeffs[4][i].quo(coeffs[5][i]), :p=>nil, :label=>v}
+          z=coeffs[4][i].quo(coeffs[5][i])
+          est[key]={:estimate=>coeffs[4][i], :se=>coeffs[5][i], :z=>z, :p=>Statsample::Test.p_using_cdf(Distribution::Normal.cdf(z)), :label=>v}
         end
         est
         
@@ -144,6 +170,7 @@ rm(data,manifests,latents,d_means);
       def report_building(g)
         g.section(:name=>@name) do |s|
           common_summary(s)
+          summary_standarized_coefficients_table(s) if summary_standarized_coefficients
         end
       end
 

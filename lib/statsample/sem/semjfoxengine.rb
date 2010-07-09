@@ -9,13 +9,18 @@ module Statsample
       include Summarizable
       attr_accessor :summarizable
       attr_accessor :name
+      attr_accessor :summary_standarized_coefficients
       def initialize(model,opts=Hash.new)
         @model=model
         defaults = {
-          :name=>_("SEM analysis using J.Fox sem package")
+          :name=>_("SEM analysis using J.Fox sem package"),
+          :summary_standarized_coefficients=>true
         }
         @opts=defaults.merge opts
+        
         @name=@opts[:name]
+        @summary_standarized_coefficients=@opts[:summary_standarized_coefficients]
+        
       end
       def r
         @r||=Rserve::Connection.new
@@ -61,11 +66,14 @@ sem.summary<-summary(sem.object)
         end
         r.void_eval r_query
         @r_summary=@r.eval('sem.summary').to_ruby
+        @r_std_coef=@r.eval('std.coef(sem.object)').to_ruby
+      end
+      def r_std_coef
+        if @r_std_coef.nil? then compute;end
+        @r_std_coef
       end
       def r_summary
-        if @r_summary.nil?
-          compute
-        end
+        if @r_summary.nil? then compute;end
         @r_summary
       end
       def graphviz
@@ -181,11 +189,24 @@ sem.summary<-summary(sem.object)
       def iterations
         r_summary['iterations']
       end
+      def standarized_coefficients
+        @std_coef||=compute_std_coef
+      end
+      def compute_std_coef
+	est=Hash.new
+        r_std_coef[2].each_with_index do |v,i|
+          v=~/(.+) (<---|<-->) (.+)/
+          f1=$1
+          f2=$3
+          key=[f1,f2].sort
+          est[key]={:estimate=>r_std_coef[1][i], :label=>@model.get_label(key)}
+        end
+        est
+      end        
       def coefficients
 	@coefficients||=compute_coefficients
       end
       def compute_coefficients
-        
 	est=Hash.new
         coeffs= r_summary['coeff']
         coeffs[4].each_with_index do |v,i|
@@ -200,9 +221,9 @@ sem.summary<-summary(sem.object)
       def report_building(g)
         g.section(:name=>@name) do |s|
           common_summary(s)
+          summary_standarized_coefficients_table(s) if summary_standarized_coefficients
         end
       end
-
     end # class
   end # class
 end # module

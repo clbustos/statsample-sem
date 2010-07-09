@@ -27,6 +27,25 @@ module Statsample
             t.row [f1,f2, label, estimate, se, z] 
           end
         end
+        
+        def summary_standarized_coefficients_table(s)
+        s.table(:name=>_("Standarized coefficients"),:header=>[_("From"), _("To"), _("Label"),  _("estimate")]) do |t|
+          @model.paths.sort.each do |v|
+            f1,f2 = v[0][0],v[0][1]
+            key=v[0]
+            if v[1][:free]
+              val=standarized_coefficients[key]
+              label=v[1][:label]
+              estimate=val[:estimate].nil? ? "?" : "%0.5f" % val[:estimate]
+            else
+              label=_("%s (Fixed)") % v[1][:label]
+              estimate=v[1][:value]
+            end
+            t.row [f1,f2, label, estimate] 
+          end
+        end
+      end
+        
       end
     end
   end
