@@ -39,7 +39,7 @@ module Statsample
         mod.manifests=manifests
         if @paths
           @paths.each_pair do |k,v|
-            mod.add_raw_path(k[0],k[1],v[:arrow],v[:label],v[:free], v[:value])
+            mod.add_raw_path(v[:from],v[:to],v[:arrow],v[:label],v[:free], v[:value])
           end
         end
         mod
