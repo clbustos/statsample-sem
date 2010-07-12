@@ -44,7 +44,7 @@ describe Statsample::SEM::Model do
   it "method path with :from should create a variance path" do
     @model.path :from=>"x1"
     @model.paths.should=={
-      ['x1','x1']=>{:from=>'x1',:to=>'x1',:arrow=>2,:label=>'var x1', :free=>true, :value=>nil}
+      ['x1','x1']=>{:from=>'x1',:to=>'x1',:arrow=>2, :label=>'var x1', :free=>true, :value=>nil}
     }
   end
   it "method path with :from and :two should create a regression path" do
@@ -62,7 +62,15 @@ describe Statsample::SEM::Model do
       ['G','x2']=>{:from=>'G',:to=>'x2',:arrow=>2,:label=>'G cov x2', :free=>true, :value=>nil}
     }
   end 
-  it "method path should label correctly" do
+  it "method path should label correctly with String" do
+    @model.path :from=>"G", :to=>['x1','x2','x3'], :labels=>"s1"
+    @model.paths.should=={
+      ['G','x1']=>{:from=>'G',:to=>'x1',:arrow=>1,:label=>'s1', :free=>true, :value=>nil},
+      ['G','x2']=>{:from=>'G',:to=>'x2',:arrow=>1,:label=>'s1', :free=>true, :value=>nil},
+      ['G','x3']=>{:from=>'G',:to=>'x3',:arrow=>1,:label=>'s1', :free=>true, :value=>nil}
+    }
+  end 
+  it "method path should label correctly with Array" do
     @model.path :from=>"G", :to=>['x1','x2','x3'], :labels=>['to x1','to x2']
     @model.paths.should=={
       ['G','x1']=>{:from=>'G',:to=>'x1',:arrow=>1,:label=>'to x1', :free=>true, :value=>nil},
@@ -89,8 +97,32 @@ describe Statsample::SEM::Model do
       ['G','x3']=>{:from=>'G',:to=>'x3',:arrow=>1,:label=>'G to x3', :free=>false, :value=>1.0}
     }
   end
-  
-  
+  it "method factor without variance should create correct paths" do
+    @model.factor :latent=>"G", :manifests=>['x1','x2','x3']
+    expected={
+      ['G','G']=>{:from=>'G',:to=>'G',:arrow=>2,:label=>'var G', :free=>true, :value=>nil},
+      ['G','x1']=>{:from=>'G',:to=>'x1',:arrow=>1, :label=>"G to x1", :free=>false, :value=>1.0},
+      ['G','x2']=>{:from=>'G',:to=>'x2',:arrow=>1,:label=>'G to x2', :free=>true, :value=>nil},
+      ['G','x3']=>{:from=>'G',:to=>'x3',:arrow=>1,:label=>'G to x3', :free=>true, :value=>nil},
+      ['x1','x1']=>{:from=>'x1',:to=>'x1',:arrow=>2,:label=>'var x1', :free=>true, :value=>nil},
+      ['x2','x2']=>{:from=>'x2',:to=>'x2',:arrow=>2,:label=>'var x2', :free=>true, :value=>nil},
+      ['x3','x3']=>{:from=>'x3',:to=>'x3',:arrow=>2,:label=>'var x3', :free=>true, :value=>nil}      
+    }
+    @model.paths.should==expected
+    
+  end
+  it "method factor with variance should create correct paths" do
+    @model.factor :latent=>"G", :manifests=>['x1','x2','x3'], :variance=>1.0
+    @model.paths.should=={
+      ['G','G']=>{:from=>'G',:to=>'G',:arrow=>2,:free=>false,:label=>'var G', :value=>1.0},
+      ['G','x1']=>{:from=>'G',:to=>'x1',:arrow=>1,:label=>'G to x1', :free=>true, :value=>nil},
+      ['G','x2']=>{:from=>'G',:to=>'x2',:arrow=>1,:label=>'G to x2', :free=>true, :value=>nil},
+      ['G','x3']=>{:from=>'G',:to=>'x3',:arrow=>1,:label=>'G to x3', :free=>true, :value=>nil},
+      ['x1','x1']=>{:from=>'x1',:to=>'x1',:arrow=>2,:label=>'var x1', :free=>true, :value=>nil},
+      ['x2','x2']=>{:from=>'x2',:to=>'x2',:arrow=>2,:label=>'var x2', :free=>true, :value=>nil},
+      ['x3','x3']=>{:from=>'x3',:to=>'x3',:arrow=>2,:label=>'var x3', :free=>true, :value=>nil}      
+    }  
+  end
   describe "with multiple in and outs" do
     it "should set correctly 1 in, multiple outs" do
       @model.path :from=>"G", :to=>['x1','x2']

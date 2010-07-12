@@ -17,15 +17,14 @@ model=Statsample::SEM::Model.new(:name=>"Wheaton data") do |m|
   m.data_from_matrix(matrix, :cases=>932)
   m.latents=%w{Alienation67 Alienation71 SES}
   m.manifests=matrix.fields
-  m.path :from=>"Alienation67", :to=>%w{Anomia67}, :free=>false, :values=>1.0
-  m.path :from=>"Alienation67", :to=>%w{Powerless67 Alienation71}, :labels=>["lam1","beta"]
-  m.path :from=>"Alienation71", :to=>%w{Anomia71}, :free=>false, :values=>1.0
-  m.path :from=>"Alienation71", :to=>%w{Powerless71}, :labels=>["lam2"]
+  # Measurement model
+  m.factor :latent=>'Alienation67', :manifests=>%w{Anomia67 Powerless67}
+  m.factor :latent=>'Alienation71', :manifests=>%w{Anomia71 Powerless71}
+  m.factor :latent=>'SES', :manifests=>%w{Education SEI}
+  # Structural model
+  m.path :from=>'Alienation67', :to=>'Alienation71', :label=>'beta'
   m.path :from=>"SES", :to=>%w{Alienation67 Alienation71}, :labels=>%w{gam1 gam2}
-  m.path :from=>"SES", :to=>%w{Education}, :free=>false, :values=>1.0
-  m.path :from=>"SES", :to=>%w{SEI}, :labels=>["lam3"]
-  m.path :from=>m.manifests, :arrows=>2, :labels=>%w{the11 the22 the33 the44 thd11 thd22}
-  m.path :from=>m.latents, :arrows=>2, :labels=>%w{psi11 psi22 phi}
+  
 end
 engine=Statsample::SEM::SemJFoxEngine.new(model, :name=>"Wheaton data")
 engine.compute

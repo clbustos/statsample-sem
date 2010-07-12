@@ -27,6 +27,8 @@ module Statsample
         if block
           block.arity<1 ? self.instance_eval(&block) : block.call(self)
         end
+        @delta_n=0
+        
       end
       def dup
         mod=Model.new(@opts)
@@ -73,19 +75,66 @@ module Statsample
       def add_path(f1,f2,arrows,free,values,labels,i)
         arrow_s = (arrows==1) ? "to":"cov"
         raise "Path repeated : #{f1},#{f2}" if @paths.has_key? [[f1,f2].sort]
-        label= (labels.nil? or !labels.respond_to?:[] or labels[i].nil?) ? "#{f1} #{arrow_s} #{f2}" : labels[i]
+        
+        
         
         free_v = (free.is_a? Array) ? free[i] : free 
         if values.is_a? Array
           value= values[i].nil? ? nil : values[i]
         elsif values.is_a? Numeric
-          value=values
+          value = values
         end
-          
+        
+        if labels.nil? or (labels.is_a? Array and labels[i].nil?) 
+          label= "#{f1} #{arrow_s} #{f2}"
+        elsif labels.is_a? Array
+          label= labels[i]
+        else
+          label=labels.to_s
+        end
         value = nil if free_v
         
         @paths[[f1,f2].sort]={ :from=>f1, :to=>f2, :arrow=>arrows, :label=>label, :free=>free_v, :value=>value}
       end
+      # Fast way to add a factor with observed variables. Provides an easy way to generate the measurement model.
+      # Is the only option needed to CFA.
+      # 
+      # All options should be provides as a Hash
+      # +:latent+ set the name of latent variable and
+      # +:manifests+ set the name for manifests or observed variables.
+      #
+      # All observed variables have specific error measurement
+      # called "var NAME_OF_VARIABLE", and the regression weigth for the first variable is set to one.
+      # 
+      # If +:variance+ key is set, then all  regression weight are free and
+      # the latent variable variance should be set to the +:variance:+ key.
+      #
+      # == Usage
+      #
+      #  m.factor :latent=>'Alienation67', :manifests=>%w{Anomia67 Powerless67}
+      #  m.factor :latent=>'Alienation71', :manifests=>%w{Anomia71 Powerless71}
+      #  m.factor :latent=>'SES', :manifests=>%w{Education SEI}
+      def factor(opts)
+        latent=opts[:latent]
+        manifests=opts[:manifests]
+        variance=opts[:variance]
+        if variance.nil?
+          path :from=>latent, :arrows=>2 # set latent variance
+          path :from=>manifests, :arrows=>2 # set error measurement variances
+          first_manifest=manifests.shift
+          path :from=>latent, :to=>first_manifest, :free=>false, :values=>1.0
+          if manifests.size>0
+            path :from=>latent, :to=>manifests
+          end
+        else
+          path :from=>latent, :arrows=>2, :free=>false, :values=>variance
+          path :from=>manifests, :arrows=>2 # set error measurement
+          path :from=>latent, :to=>manifests
+          
+        end
+      end
+      
+      
       # Set one or more paths. Based on OpenMx mxPath method.
       # 
       # ==Options:
