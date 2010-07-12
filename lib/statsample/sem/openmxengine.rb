@@ -5,6 +5,8 @@ module Statsample
     class OpenMxEngine < Engine
       include Summarizable
       attr_accessor :summarizable
+      attr_accessor :summary_standarized_coefficients
+      
       attr_accessor :name
       attr_reader :model
       def initialize(model,opts=Hash.new)
